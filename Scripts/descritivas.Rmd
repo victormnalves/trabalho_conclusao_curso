@@ -1,0 +1,162 @@
+---
+title: "descritivas"
+output: html_document
+---
+
+```{r, warning=F}
+# Carrega os pacotes necessários para a análise de dados
+library(tidyverse)    # Pacote que inclui uma coleção de pacotes para manipulação, 
+#visualização e modelagem de dados.
+library(did) # Pacote criado por Callway & Sant'Anna (2022) para seu método de DiD
+library(geobr) # Pacote para trabalhar com gráficos de mapa do Brasil
+library(magrittr)     # Pacote que permite escrever códigos mais legíveis e 
+#organizados utilizando o operador %>%
+library(lubridate)    # Pacote para trabalhar com datas
+library(zoo)          # Pacote para trabalhar com séries temporais
+library(janitor)      # Pacote para limpeza e transformação de dados
+library(readxl)       # Pacote para importar dados de arquivos do Excel
+library(stargazer)    # Pacote para criar tabelas de resultados de modelos
+library(ggthemes)     # Pacote para personalização de gráficos criados com ggplot2
+library(viridis)      # Pacote para gerar paletas de cores para gráficos
+library(GGally)       # Pacote para criação de matriz de dispersão
+library(gridExtra)    # Pacote para combinar vários gráficos em uma única imagem
+library(grid)         # Pacote para trabalhar com layout e alinhamento de gráficos
+library(gridtext)     # Pacote para adicionar texto em gráficos gerados com grid
+library(plm)          # Pacote para modelagem de dados em painel
+library(tempdisagg)   # Pacote para desagregação temporal de séries de tempo
+library(showtext)     # Pacote de fontes
+library(forecast)     # Pacote para séries temporais
+library(broom)
+library(xtable)
+library(modelsummary)
+```
+
+
+```{r, warning=F}
+setwd("C:/Users/victorma1/Downloads/TCC/Dados/")
+
+dados_ice_v3 <- arrow::read_parquet('dados_ice_v3_limpo.parquet') %>% 
+  filter(ano_enem >= 2009) %>% 
+  mutate(cod_munic = as.numeric(cod_munic))
+
+painel_indicadores <- arrow::read_parquet('painel_indicadores.parquet')
+
+painel_indicadores_simplificado <- arrow::read_parquet('painel_indicadores_simplificado.parquet')
+```
+
+```{r}
+dados_ice_norm <- dados_ice_v3 %>% 
+  select(c(ano, codigo_escola, ano_ice, 
+           enem_nota_objetivab, enem_nota_redacao, enem_nota_matematica,
+           enem_nota_linguagens, enem_nota_humanas, enem_nota_ciencias)) %>% 
+  mutate_at(c('enem_nota_objetivab', 'enem_nota_redacao', 'enem_nota_matematica',
+           'enem_nota_linguagens', 'enem_nota_humanas', 'enem_nota_ciencias'), scale)
+
+
+painel_indicadores_norm <- painel_indicadores_simplificado %>% 
+  select(c(ano, codigo_escola, ano_ice, 
+           aba_em, rep_em, dist_em, apr_em)) %>% 
+  mutate_at(c('aba_em', 'rep_em', 'dist_em','apr_em'), scale)
+```
+
+                                                                                                                                                                         
+```{r, warning=F}
+dados_ice_v3 %>% 
+  filter(ano_enem >= 2009) %>% 
+    mutate(ano_enem = lubridate::ymd(ano_enem, truncated = 2L),
+           tratado = as_factor(tratado),
+           tratado = case_when(tratado == 1 ~ "Possui EMI",
+                               tratado != 1 ~ "Não possui EMI",
+                               T ~ tratado)) %>%
+    group_by(ano_enem, tratado) %>% 
+    summarise(enem_nota_redacao = mean(enem_nota_redacao, na.rm = T),
+              enem_nota_matematica = mean(enem_nota_matematica, na.rm = T),
+              enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = T),
+              enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = T),
+              enem_nota_humanas = mean(enem_nota_humanas, na.rm = T)
+              ) %>%
+  pivot_longer(!c(ano_enem, tratado), 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'enem_nota_redacao' ~ 'Redação',
+                           prova == 'enem_nota_matematica' ~ 'Matemática',
+                           prova == 'enem_nota_linguagens' ~ 'Linguagens',
+                           prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+                           prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+                           T ~ prova)) %>% 
+  ggplot() +
+  geom_point(aes(ano_enem, nota, colour = tratado)) +
+  geom_line(aes(ano_enem, nota, colour = tratado)) +
+  labs(x = 'Ano', y = 'Nota', colour = "Status EMI") +
+  facet_wrap(vars(prova)) +
+  tema
+```
+
+```{r}
+painel_indicadores_simplificado %>% 
+    mutate(ano_enem = lubridate::ymd(ano_censo.x, truncated = 2L),
+           tratado = as_factor(tratado),
+           tratado = case_when(tratado == 1 ~ "Possui EMI",
+                               tratado != 1 ~ "Não possui EMI",
+                               T ~ tratado)) %>%
+    group_by(ano_enem, tratado) %>% 
+    summarise(aba_em = mean(aba_em, na.rm = T),
+              apr_em = mean(apr_em, na.rm = T),
+              rep_em = mean(rep_em, na.rm = T),
+              dist_em = mean(dist_em, na.rm = T),
+              enem_nota_humanas = mean(enem_nota_humanas, na.rm = T)
+              ) %>%
+  pivot_longer(!c(ano_enem, tratado), 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'aba_em' ~ 'Abandono',
+                           prova == 'apr_em' ~ 'Aprovação',
+                           prova == 'rep_em' ~ 'Reprovação',
+                           prova == 'dist_em' ~ 'Distorção',
+                           T ~ prova)) %>% 
+  ggplot() +
+  geom_point(aes(ano_enem, nota, colour = tratado)) +
+  geom_line(aes(ano_enem, nota, colour = tratado)) +
+  labs(x = 'Ano', y = 'Nota', colour = "Status EMI") +
+  facet_wrap(vars(prova)) +
+  tema
+```
+
+```{r}
+datasummary_balance(~tratado, dados_ice_v3 %>% 
+                      select(tratado, e_mora_mais_de_6_pessoas:e_trabalhou_ou_procurou,
+                             dependencia_administrativa:ativa, predio:esgoto,
+                             starts_with('p_')))
+
+datasummary_skim(dados_ice_v3 %>% 
+                      select(tratado, e_mora_mais_de_6_pessoas:e_trabalhou_ou_procurou,
+                             dependencia_administrativa:ativa, predio:esgoto,
+                             starts_with('p_')))
+```
+
+```{r}
+datasummary_balance(~tratado, dados_ice_v3 %>% 
+                      select(tratado, starts_with('enem_'), 
+                             aba_em, apr_em, rep_em, dist_em))
+
+datasummary_skim(dados_ice_v3 %>% 
+                   select(tratado, starts_with('enem_'),
+                          aba_em, apr_em, rep_em, dist_em))
+```
+
+```{r}
+datasummary_balance(~tratado, painel_indicadores_simplificado %>% 
+                      select(tratado, dependencia_administrativa:internet))
+
+datasummary_skim(painel_indicadores_simplificado %>%
+                   select(tratado, dependencia_administrativa:internet))
+```
+
+```{r}
+datasummary_balance(~tratado, painel_indicadores_simplificado %>% 
+                      select(tratado, ends_with('em')))
+
+datasummary_skim(painel_indicadores_simplificado %>% 
+                      select(tratado, ends_with('em')))
+```
+

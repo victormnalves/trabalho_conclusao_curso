@@ -1,0 +1,1172 @@
+---
+title: "TCC"
+author: "Victor Alves"
+format: latex
+editor: visual
+output:
+  html_document: 
+    toc: true
+    toc_depth: 2
+    keep_md: yes
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    keep_md: yes
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Loading Packages
+
+```{r, warning=FALSE, message=FALSE}
+# Carrega os pacotes necessários para a análise de dados
+library(tidyverse)    # Pacote que inclui uma coleção de pacotes para manipulação, 
+#visualização e modelagem de dados.
+library(did) # Pacote criado por Callway & Sant'Anna (2022) para seu método de DiD
+library(bacondecomp)
+library(geobr) # Pacote para trabalhar com gráficos de mapa do Brasil
+library(magrittr)     # Pacote que permite escrever códigos mais legíveis e 
+#organizados utilizando o operador %>%
+library(lubridate)    # Pacote para trabalhar com datas
+library(zoo)          # Pacote para trabalhar com séries temporais
+library(janitor)      # Pacote para limpeza e transformação de dados
+library(readxl)       # Pacote para importar dados de arquivos do Excel
+library(stargazer)    # Pacote para criar tabelas de resultados de modelos
+library(ggthemes)     # Pacote para personalização de gráficos criados com ggplot2
+library(viridis)      # Pacote para gerar paletas de cores para gráficos
+library(GGally)       # Pacote para criação de matriz de dispersão
+library(gridExtra)    # Pacote para combinar vários gráficos em uma única imagem
+library(grid)         # Pacote para trabalhar com layout e alinhamento de gráficos
+library(gridtext)     # Pacote para adicionar texto em gráficos gerados com grid
+library(plm)          # Pacote para modelagem de dados em painel
+library(tempdisagg)   # Pacote para desagregação temporal de séries de tempo
+library(showtext)     # Pacote de fontes
+library(forecast)     # Pacote para séries temporais
+library(broom)
+library(xtable)
+library(modelsummary)
+library(gt)
+```
+
+# Data
+
+## Loading data
+
+### Loading original data
+
+```{r, warning=FALSE}
+# Definindo o diretório de trabalho como a pasta do TCC
+setwd("G:/Meu Drive/Insper/TCC")
+
+# Lendo o arquivo de dados limpo e filtrando anos maiores ou iguais a 2009
+dados_ice_v3 <- arrow::read_parquet('Dados/dados_ice_v3_limpo.parquet') %>% 
+  filter(ano_enem >= 2009) %>% 
+  mutate(cod_munic = as.numeric(cod_munic))
+
+# Lendo o painel de indicadores completo
+painel_indicadores <- arrow::read_parquet('Dados/painel_indicadores.parquet')
+
+# Lendo o painel de indicadores simplificado
+painel_indicadores_simplificado <-
+  arrow::read_parquet('Dados/painel_indicadores_simplificado.parquet')
+```
+
+```{r}
+# Normalizando as colunas de notas do ENEM no conjunto de dados dados_ice_v3
+dados_ice_v3_norm <- dados_ice_v3 %>% 
+  mutate_at(c('enem_nota_objetiva', 'enem_nota_redacao', 'enem_nota_matematica', 'enem_nota_linguagens',
+              'enem_nota_humanas', 'enem_nota_ciencias', 'enem_nota_objetivab'), 
+            ~(scale(.) %>% as.vector))
+
+# Normalizando as colunas de indicadores no painel indicadores simplificado
+painel_indicadores_simplificado_norm <- painel_indicadores_simplificado %>% 
+  mutate_at(c('aba_em', 'dist_em', 'apr_em', 'rep_em'),  
+            ~(scale(.) %>% as.vector)) %>%
+  mutate(codigo_escola = as.numeric(codigo_escola),
+         ano_censo = as.numeric(ano_censo.x)) %>% 
+  filter(ano_ice %in% c(0, 2008:2022)) %>% 
+  make.pbalanced(fae_all, 
+               balance.type = c("fill"), 
+               index = c("codigo_escola","ano_censo")) 
+```
+
+```{r}
+# Definindo um tema para gráficos padrão
+tema <- theme(
+  plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+  axis.line = element_line(colour = "black"),
+  axis.text.y = element_text(angle = 0, size = 12, face = 'plain'),
+  axis.text.x = element_text(angle = 90, size = 12, face = 'plain'),
+  axis.title = element_text(size = 14, face = 'plain'),
+  legend.title = element_text(size = 10),
+  legend.text = element_text(size = 10),
+  plot.background = element_rect(fill = alpha("white", 0.25), color = NA),
+  legend.background = element_rect(fill = "transparent", color = NA)
+)
+
+# Definindo um tema específico para gráficos tipo DID (Differences-in-Differences)
+tema_did <- theme(
+  plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+  legend.text = element_text(size = 16),
+  axis.line = element_line(colour = "black"),
+  axis.text.y = element_text(angle = 0, size = 14, face = 'plain'),
+  axis.text.x = element_text(angle = 0, size = 14, face = 'plain'),
+  axis.title = element_text(size = 14, face = 'plain'),
+  legend.title = element_text(size = 10),
+  plot.background = element_rect(fill = alpha("white", 0.25), color = NA),
+  panel.background = element_rect(fill = "transparent", color = NA),
+  legend.background = element_rect(fill = "transparent", color = NA)
+)
+```
+
+```{r}
+dados_ice_v3 %>% 
+  select(ano_ice, codigo_escola) %>% 
+  group_by(ano_ice) %>% 
+  summarise(n = n()) %>%
+  mutate(rel.freq = paste0(round(100 * n/sum(n), 0), "%"))
+```
+
+```{r}
+painel_indicadores_simplificado %>% 
+  select(ano_ice, codigo_escola) %>% 
+  group_by(ano_ice) %>% 
+  summarise(n = n()) %>%
+  mutate(rel.freq = paste0(round(100 * n/sum(n), 0), "%"))
+```
+
+
+# Descriptives
+
+```{r}
+painel_indicadores_simplificado %>% 
+  group_by(ano_ice) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n)) %>% 
+  ggplot(., aes(fill = ano_ice, values = freq)) +
+  geom_waffle(n_rows = 8, size = 0.33, colour = "white") +
+  scale_fill_manual(name = NULL,
+                    values = c("#BA182A", "#FF8288", "#FFDBDD"),
+                    labels = c("A", "B", "C")) +
+  coord_equal() +
+  theme_void()
+```
+
+
+```{r, warning=F}
+# Filtrando e manipulando os dados
+dados_ice_v3 %>% 
+  filter(ano_enem >= 2009) %>%  # Filtrando para incluir apenas anos a partir de 2009
+  mutate(
+    ano_enem = lubridate::ymd(ano_enem, truncated = 2L),  # Convertendo a coluna 'ano_enem' para o formato de data
+    tratado = as_factor(tratado),  # Convertendo 'tratado' para fator
+    tratado = case_when(  # Renomeando 'tratado' com base no valor
+      tratado == 1 ~ "Possui EMI",
+      tratado != 1 ~ "Não possui EMI",
+      TRUE ~ as.character(tratado)
+    )
+  ) %>%
+  
+  # Agrupando por ano e tratado, calculando médias das notas do ENEM
+  group_by(ano_enem, tratado) %>% 
+  summarise(across(starts_with("enem_nota"), mean, na.rm = TRUE)) %>%
+  
+  # Transformando as colunas de notas em formato longo para facilitar o gráfico
+  pivot_longer(cols = starts_with("enem_nota"), 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  
+  # Renomeando 'prova' para descrição mais amigável
+  mutate(prova = case_when(
+    prova == 'enem_nota_redacao' ~ 'Redação',
+    prova == 'enem_nota_matematica' ~ 'Matemática',
+    prova == 'enem_nota_linguagens' ~ 'Linguagens',
+    prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+    prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+    TRUE ~ prova
+  )) %>% 
+  
+  # Criando gráfico utilizando ggplot2
+  ggplot() +  # Iniciando o gráfico
+  geom_point(aes(ano_enem, nota, colour = tratado)) +  # Adicionando pontos no gráfico
+  geom_line(aes(ano_enem, nota, colour = tratado)) +  # Adicionando linhas no gráfico
+  labs(x = 'Ano', y = 'Nota', colour = "Status EMI") +  # Definindo rótulos dos eixos e da legenda de cor
+  facet_wrap(vars(prova)) +  # Facetando por tipo de prova
+  tema  # Aplicando o tema definido ao gráfico
+```
+
+```{r}
+# Manipulação dos dados para análise de indicadores educacionais
+dados_ice_v3 %>% 
+  mutate(
+    ano_enem = lubridate::ymd(ano_enem, truncated = 2L),  # Convertendo a coluna 'ano_enem' para o formato de data
+    tratado = as_factor(tratado),  # Convertendo 'tratado' para fator
+    tratado = case_when(  # Renomeando 'tratado' com base no valor
+      tratado == 1 ~ "Possui EMI",
+      tratado != 1 ~ "Não possui EMI",
+      TRUE ~ as.character(tratado)
+    )
+  ) %>%
+  group_by(ano_enem, tratado) %>% 
+  summarise(
+    aba_em = mean(aba_em, na.rm = TRUE),  # Calculando média de abandono escolar
+    apr_em = mean(apr_em, na.rm = TRUE),  # Calculando média de aprovação escolar
+    rep_em = mean(rep_em, na.rm = TRUE),  # Calculando média de reprovação escolar
+    dist_em = mean(dist_em, na.rm = TRUE)  # Calculando média de distorção idade-série
+  ) %>%
+  pivot_longer(
+    !c(ano_enem, tratado), 
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>% 
+  mutate(
+    prova = case_when(  # Renomeando 'prova' para descrição mais amigável
+      prova == 'aba_em' ~ 'Abandono',
+      prova == 'apr_em' ~ 'Aprovação',
+      prova == 'rep_em' ~ 'Reprovação',
+      prova == 'dist_em' ~ 'Distorção',
+      TRUE ~ prova
+    )
+  ) %>% 
+  ggplot() +  # Iniciando o gráfico
+  geom_point(aes(ano_enem, nota, colour = tratado)) +  # Adicionando pontos no gráfico
+  geom_line(aes(ano_enem, nota, colour = tratado)) +  # Adicionando linhas no gráfico
+  labs(x = 'Ano', y = 'Nota', colour = "Status EMI") +  # Definindo rótulos dos eixos e da legenda de cor
+  facet_wrap(vars(prova)) +  # Facetando por tipo de prova
+  tema  # Aplicando o tema definido ao gráfico
+```
+
+```{r dev = "pdf", out.width="100%", out.height="100%", warning=FALSE}
+# Criando série temporal das médias das notas do ENEM ao longo dos anos
+serie_media_notas <- 
+  dados_ice_v3 %>% 
+  filter(ano_enem >= 2009) %>% 
+  group_by(ano_enem) %>% 
+  summarise(
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    !ano_enem, 
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>% 
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    ),
+    ano_enem = as_factor(ano_enem)
+  ) %>% 
+  ggplot(aes(ano_enem, nota)) +
+  geom_point() +
+  geom_line(aes(group = 1)) + 
+  labs(x = 'Ano', y = 'Nota') +
+  scale_x_discrete() +
+  facet_wrap(vars(prova), scales = "free") +
+  tema
+
+# Salvando o gráfico da série temporal das médias das notas do ENEM em um arquivo PDF
+ggsave(
+  plot = serie_media_notas, 
+  filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/serie_media_notas.png",
+  device = "png",
+  width = 12, height = 6, units = "in"
+)
+
+# Criando série temporal das médias dos indicadores educacionais ao longo dos anos
+serie_media_indicadores <- 
+  painel_indicadores_simplificado %>% 
+  mutate(ano_censo = ano) %>% 
+  group_by(ano_censo) %>% 
+  summarise(
+    aprovacao = mean(apr_em, na.rm = TRUE),
+    reprovacao = mean(rep_em, na.rm = TRUE),
+    abandono = mean(aba_em, na.rm = TRUE),
+    distorcao = mean(dist_em, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    !ano_censo, 
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>% 
+  mutate(
+    prova = case_when(
+      prova == 'aprovacao' ~ 'Aprovação',
+      prova == 'reprovacao' ~ 'Reprovação',
+      prova == 'abandono' ~ 'Abandono',
+      prova == 'distorcao' ~ 'Distorção',
+      TRUE ~ prova
+    ),
+    ano_censo = as_factor(ano_censo)
+  ) %>% 
+  ggplot(aes(ano_censo, nota)) +
+  geom_point() +
+  geom_line(aes(group = 1)) + 
+  labs(x = 'Ano', y = 'Taxa (%)') +
+  facet_wrap(vars(prova), scales = "free") +
+  scale_x_discrete() +
+  tema
+
+# Salvando o gráfico da série temporal das médias dos indicadores educacionais em um arquivo PDF
+ggsave(
+  plot = serie_media_indicadores, 
+  filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/serie_media_indicadores.png",
+  device = "png",
+  width = 12, height = 6, units = "in"
+)
+```
+
+```{r}
+serie_media_notas
+serie_media_indicadores
+```
+
+```{r dev = "pdf", out.width="100%", out.height="100%", warning=FALSE}
+serie_escolas_no_medio <- 
+  read_xlsx('G:/Meu Drive/Insper/TCC/Dados/lista_escolas.xlsx', sheet = 'Planilha2') %>%
+  ggplot(aes(as_factor(ano), percentual_emi, label = scales::percent(percentual_emi))) + 
+  geom_line(aes(group = 1)) + 
+  geom_label(aes(label = scales::percent(round(percentual_emi,3))), 
+             colour = "black", 
+             position= position_dodge(width=0.1)) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.4)) + 
+  scale_x_discrete() +
+  labs(x = 'Ano') +
+  tema +
+  theme(axis.title.y=element_blank(),
+        axis.text.x = element_text(angle = 90, vjust = 0.5)) 
+
+ggsave(
+  plot = serie_escolas_no_medio, 
+  filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/serie_escolas_integral.png",
+  device = "png",
+  width = 12, height = 6, units = "in"
+)
+```
+
+
+```{r dev = "pdf", out.width="100%", out.height="100%", warning=FALSE}
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_redacao)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+  
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_matematica)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+  
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_linguagens)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+
+
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_humanas)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_ciencias)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+```
+
+```{r dev = "pdf", out.width="100%", out.height="100%", warning=FALSE}
+dados_ice_v3 %>% 
+  filter(ano_enem >= 2009) %>% 
+    mutate(ano_enem = as.factor(ano_enem),
+           tratado = as_factor(tratado),
+           tratado = case_when(tratado == 1 ~ "Possui EMI",
+                               tratado != 1 ~ "Não possui EMI",
+                               T ~ tratado)) %>%
+    group_by(ano_enem, tratado) %>% 
+    summarise(enem_nota_redacao = mean(enem_nota_redacao, na.rm = T),
+              enem_nota_matematica = mean(enem_nota_matematica, na.rm = T),
+              enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = T),
+              enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = T),
+              enem_nota_humanas = mean(enem_nota_humanas, na.rm = T)
+              ) %>%
+  pivot_longer(!c(ano_enem, tratado), 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'enem_nota_objetiva' ~ 'Objetiva',
+                           prova == 'enem_nota_redacao' ~ 'Redação',
+                           prova == 'enem_nota_matematica' ~ 'Matemática',
+                           prova == 'enem_nota_linguagens' ~ 'Linguagens',
+                           prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+                           prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+                           T ~ prova)) %>% 
+  filter(prova != 'Redação') %>% 
+  ggplot() +
+  geom_point(aes(ano_enem, nota, colour = tratado)) +
+  labs(x = 'Ano', y = 'Nota', colour = "Status EMI") +
+  facet_wrap(vars(prova), scales = "free")
+
+painel_indicadores_simplificado %>% 
+  mutate(ano_censo = as.factor(ano_censo.x),
+         tratado = as_factor(tratado),
+         tratado = case_when(tratado == 1 ~ "Possui EMI",
+                             tratado != 1 ~ "Não possui EMI",
+                             T ~ tratado),
+         tratado = as_factor(tratado)) %>% 
+  group_by(ano_censo,tratado) %>% 
+  summarise(aprovacao = mean(apr_em, na.rm = T),
+            reprovacao = mean(rep_em, na.rm = T),
+            abandono = mean(aba_em, na.rm = T),
+            distorcao = mean(dist_em, na.rm = T),
+            ) %>%
+pivot_longer(!c(ano_censo,tratado), 
+             names_to = 'prova',
+             values_to = 'nota') %>% 
+mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                         prova == 'reprovacao' ~ 'Reprovação',
+                         prova == 'abandono' ~ 'Abandono',
+                         prova == 'distorcao' ~ 'Distorção',
+                         T ~ prova)) %>% 
+  ggplot() +
+  geom_point(aes(ano_censo, nota, colour = tratado)) +
+  labs(x = 'Ano', y = 'Taxa (%)') +
+  facet_wrap(vars(prova), scales = "free")
+
+```
+
+```{r}
+dados_ice_v3 %>%
+  filter(ano_enem >= 2009, tratado == 1) %>%
+  mutate(ano_enem = as.factor(ano_enem), ano_ice = as.factor(ano_ice)) %>%
+  group_by(ano_enem, ano_ice) %>%
+  summarise(
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE),
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    .groups = "drop"  # Override grouping
+  ) %>%
+  ungroup() %>%
+  pivot_longer(
+    !c(ano_enem, ano_ice),
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>%
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    )
+  ) %>%
+  filter(prova == 'Objetiva') %>% 
+  ggplot() +
+  geom_line(aes(ano_enem, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Nota Objetiva') +
+  facet_wrap(vars(ano_ice), scales = "free")
+  
+dados_ice_v3 %>%
+  filter(ano_enem >= 2009, tratado == 1) %>%
+  mutate(ano_enem = as.factor(ano_enem), ano_ice = as.factor(ano_ice)) %>%
+  group_by(ano_enem, ano_ice) %>%
+  summarise(
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE),
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    .groups = "drop"  # Override grouping
+  ) %>%
+  ungroup() %>%
+  pivot_longer(
+    !c(ano_enem, ano_ice),
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>%
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    )
+  ) %>%
+  filter(prova == 'Redação') %>% 
+  ggplot() +
+  geom_line(aes(ano_enem, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Nota Objetiva') +
+  facet_wrap(vars(ano_ice), scales = "free")
+  
+dados_ice_v3 %>%
+  filter(ano_enem >= 2009, tratado == 1) %>%
+  mutate(ano_enem = as.factor(ano_enem), ano_ice = as.factor(ano_ice)) %>%
+  group_by(ano_enem, ano_ice) %>%
+  summarise(
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE),
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    .groups = "drop"  # Override grouping
+  ) %>%
+  ungroup() %>%
+  pivot_longer(
+    !c(ano_enem, ano_ice),
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>%
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    )
+  ) %>%
+  filter(prova == 'Matemática') %>% 
+  ggplot() +
+  geom_line(aes(ano_enem, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Nota Matemática') +
+  facet_wrap(vars(ano_ice), scales = "free")
+  
+dados_ice_v3 %>%
+  filter(ano_enem >= 2009, tratado == 1) %>%
+  mutate(ano_enem = as.factor(ano_enem), ano_ice = as.factor(ano_ice)) %>%
+  group_by(ano_enem, ano_ice) %>%
+  summarise(
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE),
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    .groups = "drop"  # Override grouping
+  ) %>%
+  ungroup() %>%
+  pivot_longer(
+    !c(ano_enem, ano_ice),
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>%
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    )
+  ) %>%
+  filter(prova == 'Linguagens') %>% 
+  ggplot() +
+  geom_line(aes(ano_enem, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Nota Linguagens') +
+  facet_wrap(vars(ano_ice), scales = "free")
+  
+dados_ice_v3 %>%
+  filter(ano_enem >= 2009, tratado == 1) %>%
+  mutate(ano_enem = as.factor(ano_enem), ano_ice = as.factor(ano_ice)) %>%
+  group_by(ano_enem, ano_ice) %>%
+  summarise(
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE),
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    .groups = "drop"  # Override grouping
+  ) %>%
+  ungroup() %>%
+  pivot_longer(
+    !c(ano_enem, ano_ice),
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>%
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    )
+  ) %>%
+  filter(prova == 'Ciências Humanas') %>% 
+  ggplot() +
+  geom_line(aes(ano_enem, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Nota Ciências Humanas') +
+  facet_wrap(vars(ano_ice), scales = "free")
+  
+dados_ice_v3 %>%
+  filter(ano_enem >= 2009, tratado == 1) %>%
+  mutate(ano_enem = as.factor(ano_enem), ano_ice = as.factor(ano_ice)) %>%
+  group_by(ano_enem, ano_ice) %>%
+  summarise(
+    enem_nota_redacao = mean(enem_nota_redacao, na.rm = TRUE),
+    enem_nota_matematica = mean(enem_nota_matematica, na.rm = TRUE),
+    enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = TRUE),
+    enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = TRUE),
+    enem_nota_humanas = mean(enem_nota_humanas, na.rm = TRUE),
+    enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = TRUE),
+    .groups = "drop"  # Override grouping
+  ) %>%
+  ungroup() %>%
+  pivot_longer(
+    !c(ano_enem, ano_ice),
+    names_to = 'prova',
+    values_to = 'nota'
+  ) %>%
+  mutate(
+    prova = case_when(
+      prova == 'enem_nota_objetiva' ~ 'Objetiva',
+      prova == 'enem_nota_redacao' ~ 'Redação',
+      prova == 'enem_nota_matematica' ~ 'Matemática',
+      prova == 'enem_nota_linguagens' ~ 'Linguagens',
+      prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+      prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+      TRUE ~ prova
+    )
+  ) %>%
+  filter(prova == 'Ciências Naturais') %>% 
+  ggplot() +
+  geom_line(aes(ano_enem, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Nota Ciências Naturais') +
+  facet_wrap(vars(ano_ice), scales = "free")
+```
+
+
+```{r}
+painel_indicadores_simplificado %>% 
+  filter(tratado == 1) %>% 
+  mutate(ano_censo = as.factor(ano_censo.x),
+         ano_ice = as.factor(ano_ice)) %>% 
+  group_by(ano_censo,ano_ice) %>% 
+  summarise(aprovacao = mean(apr_em, na.rm = T),
+            reprovacao = mean(rep_em, na.rm = T),
+            abandono = mean(aba_em, na.rm = T),
+            distorcao = mean(dist_em, na.rm = T),
+            .groups = "drop"  # Override grouping
+            ) %>%
+pivot_longer(!c(ano_censo,ano_ice), 
+             names_to = 'prova',
+             values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                         prova == 'reprovacao' ~ 'Reprovação',
+                         prova == 'abandono' ~ 'Abandono',
+                         prova == 'distorcao' ~ 'Distorção',
+                         T ~ prova)) %>% 
+  filter(prova == 'Aprovação') %>% 
+  ggplot() +
+  geom_line(aes(ano_censo, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Taxa de Aprovação (%)') +
+  facet_wrap(vars(ano_ice), scales = "free")
+
+painel_indicadores_simplificado %>% 
+  filter(tratado == 1) %>% 
+  mutate(ano_censo = as.factor(ano_censo.x),
+         ano_ice = as.factor(ano_ice)) %>% 
+  group_by(ano_censo,ano_ice) %>% 
+  summarise(aprovacao = mean(apr_em, na.rm = T),
+            reprovacao = mean(rep_em, na.rm = T),
+            abandono = mean(aba_em, na.rm = T),
+            distorcao = mean(dist_em, na.rm = T),
+            .groups = "drop"  # Override grouping
+            ) %>%
+pivot_longer(!c(ano_censo,ano_ice), 
+             names_to = 'prova',
+             values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                         prova == 'reprovacao' ~ 'Reprovação',
+                         prova == 'abandono' ~ 'Abandono',
+                         prova == 'distorcao' ~ 'Distorção',
+                         T ~ prova)) %>% 
+  filter(prova == 'Reprovação') %>% 
+  ggplot() +
+  geom_line(aes(ano_censo, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Taxa de Reprovação (%)') +
+  facet_wrap(vars(ano_ice), scales = "free")
+
+painel_indicadores_simplificado %>% 
+  filter(tratado == 1) %>% 
+  mutate(ano_censo = as.factor(ano_censo.x),
+         ano_ice = as.factor(ano_ice)) %>% 
+  group_by(ano_censo,ano_ice) %>% 
+  summarise(aprovacao = mean(apr_em, na.rm = T),
+            reprovacao = mean(rep_em, na.rm = T),
+            abandono = mean(aba_em, na.rm = T),
+            distorcao = mean(dist_em, na.rm = T),
+            .groups = "drop"  # Override grouping
+            ) %>%
+pivot_longer(!c(ano_censo,ano_ice), 
+             names_to = 'prova',
+             values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                         prova == 'reprovacao' ~ 'Reprovação',
+                         prova == 'abandono' ~ 'Abandono',
+                         prova == 'distorcao' ~ 'Distorção',
+                         T ~ prova)) %>% 
+  filter(prova == 'Abandono') %>% 
+  ggplot() +
+  geom_line(aes(ano_censo, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Taxa de Abandono (%)') +
+  facet_wrap(vars(ano_ice), scales = "free")
+
+painel_indicadores_simplificado %>% 
+  filter(tratado == 1) %>% 
+  mutate(ano_censo = as.factor(ano_censo.x),
+         ano_ice = as.factor(ano_ice)) %>% 
+  group_by(ano_censo,ano_ice) %>% 
+  summarise(aprovacao = mean(apr_em, na.rm = T),
+            reprovacao = mean(rep_em, na.rm = T),
+            abandono = mean(aba_em, na.rm = T),
+            distorcao = mean(dist_em, na.rm = T),
+            .groups = "drop"  # Override grouping
+            ) %>%
+pivot_longer(!c(ano_censo,ano_ice), 
+             names_to = 'prova',
+             values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                         prova == 'reprovacao' ~ 'Reprovação',
+                         prova == 'abandono' ~ 'Abandono',
+                         prova == 'distorcao' ~ 'Distorção',
+                         T ~ prova)) %>% 
+  filter(prova == 'Distorção') %>% 
+  ggplot() +
+  geom_line(aes(ano_censo, nota, group = ano_ice)) +
+  labs(x = 'Ano', y = 'Taxa de Distorção (%)') +
+  facet_wrap(vars(ano_ice), scales = "free")
+```
+
+
+```{r, warning=FALSE}
+datasummary_balance(~tratado, dados_ice_v3 %>% 
+                      select(tratado, e_mora_mais_de_6_pessoas:e_trabalhou_ou_procurou,
+                             dependencia_administrativa:ativa, predio:esgoto,
+                             starts_with('p_')),
+                    dinm_statistic = "p.value")
+
+datasummary_skim(dados_ice_v3 %>% 
+                      select(tratado, e_mora_mais_de_6_pessoas:e_trabalhou_ou_procurou,
+                             dependencia_administrativa:ativa, predio:esgoto,
+                             starts_with('p_')),
+                 fun_numeric = list(Mean = Mean, SD = SD))
+```
+
+```{r, warning=FALSE}
+datasummary_balance(~tratado, dados_ice_v3 %>% 
+                      select(tratado, starts_with('enem_'), 
+                             aba_em, apr_em, rep_em, dist_em),
+                    dinm_statistic = "p.value")
+
+datasummary_skim(dados_ice_v3 %>% 
+                   select(tratado, starts_with('enem_'),
+                          aba_em, apr_em, rep_em, dist_em),
+                 fun_numeric = list(Mean = Mean, SD = SD))
+```
+
+```{r, warning=FALSE}
+datasummary_balance(~tratado, painel_indicadores_simplificado %>% 
+                      select(tratado, dependencia_administrativa:internet),
+                    dinm_statistic = "p.value")
+
+datasummary_skim(painel_indicadores_simplificado %>%
+                   select(tratado, dependencia_administrativa:internet))
+```
+
+```{r, warning=FALSE}
+datasummary_balance(~tratado, painel_indicadores_simplificado %>% 
+                      select(tratado, ends_with('em')),
+                    dinm_statistic = "p.value")
+
+datasummary_skim(painel_indicadores_simplificado %>% 
+                      select(tratado, ends_with('em')))
+```
+
+# Inference
+
+## TWFE
+
+## Bacon decomposition
+
+## Creating normalized effects
+
+```{r, warning=FALSE}
+did_redacao_norm <- did::att_gt(
+  yname = "enem_nota_redacao",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice", 
+  data = dados_ice_v3_norm
+)
+
+did_matematica_norm <- did::att_gt(
+  yname = "enem_nota_matematica",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_linguagem_norm <- did::att_gt(
+  yname = "enem_nota_linguagens",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_ciencias_norm <- did::att_gt(
+  yname = "enem_nota_ciencias",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_humanas_norm <- did::att_gt(
+  yname = "enem_nota_humanas",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_objetiva_norm <- did::att_gt(
+  yname = "enem_nota_objetivab",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+```
+
+```{r, warning=FALSE}
+did_abandono_norm <- did::att_gt(
+  yname = "aba_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+  )
+
+did_reprovacao_norm <- did::att_gt(
+  yname = "rep_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+  )
+
+did_aprovacao_norm <- did::att_gt(
+  yname = "apr_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+  )
+
+did_distorcao_norm <- did::att_gt(
+  yname = "dist_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+  )
+```
+
+### Dynamic results
+
+```{r}
+aggte(did_redacao_norm, type = "dynamic", na.rm = T)
+aggte(did_matematica_norm, type = "dynamic", na.rm = T)
+aggte(did_linguagem_norm, type = "dynamic", na.rm = T)
+aggte(did_ciencias_norm, type = "dynamic", na.rm = T)
+aggte(did_humanas_norm, type = "dynamic", na.rm = T)
+aggte(did_objetiva_norm, type = "dynamic", na.rm = T)
+```
+
+```{r}
+aggte(did_abandono_norm, type = "dynamic", na.rm = T)
+aggte(did_reprovacao_norm, type = "dynamic", na.rm = T)
+aggte(did_aprovacao_norm, type = "dynamic", na.rm = T)
+aggte(did_distorcao_norm, type = "dynamic", na.rm = T)
+```
+
+### Results charts
+
+```{r dev = "pdf", out.width="100%", out.height="100%", warning=FALSE}
+plot_did_redacao_norm <-
+ggdid(aggte(did_redacao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_linguagem_norm <-
+ggdid(aggte(did_linguagem_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+
+plot_did_matematica_norm <-
+ggdid(aggte(did_matematica_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_humanas_norm <-
+ggdid(aggte(did_humanas_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_ciencias_norm <-
+ggdid(aggte(did_ciencias_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_objetiva_norm <-
+ggdid(aggte(did_objetiva_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+```
+
+```{r}
+plot_did_redacao_norm
+plot_did_linguagem_norm
+plot_did_matematica_norm
+plot_did_humanas_norm
+plot_did_ciencias_norm
+plot_did_objetiva_norm
+```
+
+```{r}
+ggsave(plot_did_linguagem_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_linguagem.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_matematica_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_matematica.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_ciencias_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_ciencias.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_redacao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_redacao.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_objetiva_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_objetiva.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_humanas_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_humanas.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+```
+
+
+```{r dev = "pdf", out.width="150%", fig.height="100%", warning=FALSE}
+plot_did_aprovacao_norm <-
+ggdid(aggte(did_aprovacao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_reprovacao_norm <-
+ggdid(aggte(did_reprovacao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_distorcao_norm <-
+ggdid(aggte(did_distorcao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+plot_did_abandono_norm <-
+ggdid(aggte(did_abandono_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+```
+
+```{r}
+plot_did_aprovacao_norm
+plot_did_reprovacao_norm
+plot_did_distorcao_norm
+plot_did_abandono_norm
+```
+
+```{r}
+ggsave(plot_did_aprovacao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_aprovacao.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_distorcao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_distorcao.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_abandono_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_abandono.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+
+ggsave(plot_did_reprovacao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/LaTEX/Charts/did_agg_reprovacao.pdf",
+       device = "pdf",
+       width=7.5,height=3.5, units = "in")
+```
+
+

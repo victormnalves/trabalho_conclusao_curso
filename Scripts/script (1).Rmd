@@ -1,0 +1,1185 @@
+---
+title: "TCC"
+author: "Victor Alves"
+format: latex
+editor: visual
+output:
+  html_document: 
+    toc: true
+    toc_depth: 2
+    keep_md: yes
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    keep_md: yes
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Loading Packages
+
+```{r, warning=FALSE, message=FALSE}
+# Carrega os pacotes necessários para a análise de dados
+library(tidyverse)    # Pacote que inclui uma coleção de pacotes para manipulação, 
+#visualização e modelagem de dados.
+library(did) # Pacote criado por Callway & Sant'Anna (2022) para seu método de DiD
+library(geobr) # Pacote para trabalhar com gráficos de mapa do Brasil
+library(magrittr)     # Pacote que permite escrever códigos mais legíveis e 
+#organizados utilizando o operador %>%
+library(lubridate)    # Pacote para trabalhar com datas
+library(zoo)          # Pacote para trabalhar com séries temporais
+library(janitor)      # Pacote para limpeza e transformação de dados
+library(readxl)       # Pacote para importar dados de arquivos do Excel
+library(stargazer)    # Pacote para criar tabelas de resultados de modelos
+library(ggthemes)     # Pacote para personalização de gráficos criados com ggplot2
+library(viridis)      # Pacote para gerar paletas de cores para gráficos
+library(GGally)       # Pacote para criação de matriz de dispersão
+library(gridExtra)    # Pacote para combinar vários gráficos em uma única imagem
+library(grid)         # Pacote para trabalhar com layout e alinhamento de gráficos
+library(gridtext)     # Pacote para adicionar texto em gráficos gerados com grid
+library(plm)          # Pacote para modelagem de dados em painel
+library(tempdisagg)   # Pacote para desagregação temporal de séries de tempo
+library(showtext)     # Pacote de fontes
+library(forecast)     # Pacote para séries temporais
+library(broom)
+library(xtable)
+library(modelsummary)
+library(gt)
+```
+
+# Data
+
+## Loading data
+
+### Loading original data
+
+```{r}
+setwd("G:/Meu Drive/Insper/TCC/Dados/")
+
+dados_ice_v3 <- arrow::read_parquet('dados_ice_v3_limpo.parquet') %>% 
+  filter(ano_enem >= 2009) %>% 
+  mutate(cod_munic = as.numeric(cod_munic))
+
+painel_indicadores <- arrow::read_parquet('painel_indicadores.parquet')
+
+painel_indicadores_simplificado <- arrow::read_parquet('painel_indicadores_simplificado.parquet')
+```
+
+```{r}
+tema <- theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+              axis.line = element_line(colour = "black"),
+              axis.text.y = element_text(angle = 0, size = 12, face = 'plain'),
+              axis.text.x = element_text(angle = 90, size = 12, face = 'plain'),
+              axis.title = element_text(size = 14, face = 'plain'),
+              legend.title = element_text(size = 10),
+              legend.text = element_text(size = 10),
+              plot.background = element_rect(fill = alpha("white", 0.25), 
+                                       color = NA),
+              legend.background = element_rect(fill = "transparent", color = NA))
+
+tema_did <- theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+              legend.text = element_text(size = 16),
+              axis.line = element_line(colour = "black"),
+              axis.text.y = element_text(angle = 0, size = 14, face = 'plain'),
+              axis.text.x = element_text(angle = 0, size = 14, face = 'plain'),
+              axis.title = element_text(size = 14, face = 'plain'),
+              legend.title = element_text(size = 10),
+              plot.background = element_rect(fill = alpha("white", 0.25), 
+                                       color = NA),
+              panel.background = element_rect(fill = "transparent", color = NA),
+              legend.background = element_rect(fill = "transparent", color = NA))
+```
+
+# Descriptives
+
+```{r}
+dados_ice_v3_recorte <- dados_ice_v3 %>% 
+  select(enem_nota_ciencias, enem_nota_redacao, enem_nota_matematica, enem_nota_linguagens,
+         enem_nota_humanas, enem_nota_objetivab, tratado) %>% 
+  mutate(tratado = case_when(tratado == 0 ~ "Não Tratados",
+                             T ~ "Tratado"))
+
+painel_indicadores_recorte <- painel_indicadores_simplificado %>% 
+  select(aba_em, apr_em, dist_em, rep_em, tratado) %>% 
+  mutate(tratado = case_when(tratado == 0 ~ "Não Tratados",
+                             T ~ "Tratado"))
+
+datasummary_skim(dados_ice_v3_recorte)
+
+modelsummary::datasummary_balance(~tratado,
+                    data = dados_ice_v3_recorte,
+                    dinm_statistic = "p.value",
+                    stars = T)
+
+datasummary_skim(painel_indicadores_recorte)
+
+modelsummary::datasummary_balance(~tratado,
+                    data = painel_indicadores_recorte,
+                    dinm_statistic = "p.value",
+                    stars = T)
+```
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+serie_media_notas <-
+  dados_ice_v3 %>% 
+    filter(ano_enem >= 2009) %>% 
+    group_by(ano_enem) %>% 
+     summarise(enem_nota_objetiva = mean(enem_nota_objetivab, na.rm = T),
+              enem_nota_redacao = mean(enem_nota_redacao, na.rm = T),
+              enem_nota_matematica = mean(enem_nota_matematica, na.rm = T),
+              enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = T),
+              enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = T),
+              enem_nota_humanas = mean(enem_nota_humanas, na.rm = T)
+              ) %>%
+  pivot_longer(!ano_enem, 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'enem_nota_objetiva' ~ 'Objetiva',
+                           prova == 'enem_nota_redacao' ~ 'Redação',
+                           prova == 'enem_nota_matematica' ~ 'Matemática',
+                           prova == 'enem_nota_linguagens' ~ 'Linguagens',
+                           prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+                           prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+                           T ~ prova)) %>% 
+  ggplot(aes(ano_enem, nota)) +
+  geom_point() +
+  geom_line() + 
+  labs(x = 'Ano', y = 'Nota') +
+  facet_wrap(vars(prova), scales = "free") +
+  tema
+
+ggsave(serie_media_notas, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/serie_media_notas.png",
+       device = "png",
+       width=12,height=6, units = "in")
+
+serie_media_indicadores <- 
+  painel_indicadores_simplificado %>% 
+    mutate(ano_censo = ano) %>% 
+    group_by(ano_censo) %>% 
+     summarise(aprovacao = mean(apr_em, na.rm = T),
+              reprovacao = mean(rep_em, na.rm = T),
+              abandono = mean(aba_em, na.rm = T),
+              distorcao = mean(dist_em, na.rm = T),
+              ) %>%
+  pivot_longer(!ano_censo, 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                           prova == 'reprovacao' ~ 'Reprovação',
+                           prova == 'abandono' ~ 'Abandono',
+                           prova == 'distorcao' ~ 'Distorção',
+                           T ~ prova)) %>% 
+  ggplot(aes(ano_censo, nota)) +
+  geom_point() +
+  geom_line() + 
+  labs(x = 'Ano', y = 'Taxa (%)') +
+  facet_wrap(vars(prova), scales = "free") +
+  tema
+
+ggsave(serie_media_indicadores, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/serie_media_indicadores.png",
+       device = "png",
+       width=12,height=6, units = "in") +
+  tema
+```
+
+```{r}
+serie_media_notas
+serie_media_indicadores
+```
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_redacao)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+  
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_matematica)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+  
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_linguagens)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+
+
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_humanas)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+
+dados_ice_v3 %>% 
+  mutate(tratado = as_factor(tratado),
+    tratado = case_when(tratado == 1 ~ "Possui EMI",
+                        tratado != 1 ~ "Não possui EMI",
+                        T ~ tratado)) %>% 
+  ggplot() +
+  geom_boxplot(aes(x = tratado, y = enem_nota_ciencias)) +
+  labs(x =  '', y = 'Nota') +
+  tema +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1))
+```
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+dados_ice_v3 %>% 
+  filter(ano_enem >= 2009) %>% 
+    mutate(ano_enem = as.factor(ano_enem),
+           tratado = as_factor(tratado),
+           tratado = case_when(tratado == 1 ~ "Possui EMI",
+                               tratado != 1 ~ "Não possui EMI",
+                               T ~ tratado)) %>%
+    group_by(ano_enem, tratado) %>% 
+    summarise(enem_nota_redacao = mean(enem_nota_redacao, na.rm = T),
+              enem_nota_matematica = mean(enem_nota_matematica, na.rm = T),
+              enem_nota_linguagens = mean(enem_nota_linguagens, na.rm = T),
+              enem_nota_ciencias = mean(enem_nota_ciencias, na.rm = T),
+              enem_nota_humanas = mean(enem_nota_humanas, na.rm = T)
+              ) %>%
+  pivot_longer(!c(ano_enem, tratado), 
+               names_to = 'prova',
+               values_to = 'nota') %>% 
+  mutate(prova = case_when(prova == 'enem_nota_objetiva' ~ 'Objetiva',
+                           prova == 'enem_nota_redacao' ~ 'Redação',
+                           prova == 'enem_nota_matematica' ~ 'Matemática',
+                           prova == 'enem_nota_linguagens' ~ 'Linguagens',
+                           prova == 'enem_nota_humanas' ~ 'Ciências Humanas',
+                           prova == 'enem_nota_ciencias' ~ 'Ciências Naturais',
+                           T ~ prova)) %>% 
+  filter(prova != 'Redação') %>% 
+  ggplot() +
+  geom_point(aes(ano_enem, nota, colour = tratado)) +
+  labs(x = 'Ano', y = 'Nota', colour = "Status EMI") +
+  facet_wrap(vars(prova), scales = "free")
+
+painel_indicadores_simplificado %>% 
+  mutate(ano_censo = as.factor(ano_censo.x),
+         tratado = as_factor(tratado),
+         tratado = case_when(tratado == 1 ~ "Possui EMI",
+                             tratado != 1 ~ "Não possui EMI",
+                             T ~ tratado),
+         tratado = as_factor(tratado)) %>% 
+  group_by(ano_censo,tratado) %>% 
+  summarise(aprovacao = mean(apr_em, na.rm = T),
+            reprovacao = mean(rep_em, na.rm = T),
+            abandono = mean(aba_em, na.rm = T),
+            distorcao = mean(dist_em, na.rm = T),
+            ) %>%
+pivot_longer(!c(ano_censo,tratado), 
+             names_to = 'prova',
+             values_to = 'nota') %>% 
+mutate(prova = case_when(prova == 'aprovacao' ~ 'Aprovação',
+                         prova == 'reprovacao' ~ 'Reprovação',
+                         prova == 'abandono' ~ 'Abandono',
+                         prova == 'distorcao' ~ 'Distorção',
+                         T ~ prova)) %>% 
+  ggplot() +
+  geom_point(aes(ano_censo, nota, colour = tratado)) +
+  labs(x = 'Ano', y = 'Taxa (%)') +
+  facet_wrap(vars(prova), scales = "free")
+
+```
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+brasil <- read_country(year = 2020) %>%
+  rename(uf = abbrev_state) %>% 
+  mutate(uf = as_factor(uf))
+
+lista_escolas <- readxl::read_xlsx('G:/Meu Drive/Insper/TCC/Dados/dados_isg.xlsx', sheet = 'lista') %>% 
+  mutate(uf = as_factor(uf))
+
+mapa <- left_join(brasil, 
+          lista_escolas,
+          by = 'uf') %>% 
+  ggplot() +
+  geom_sf(aes(fill=n, geometry = geom), color= "black")+ 
+  geom_sf_label(aes(label = paste(uf, ":", ifelse(is.na(n), 0, n)), 
+                geometry = geom), size = 2, nudge_y = -0.2) +
+  tema +
+  theme(axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(x = '', y = '', fill = 'Número de escolas') +
+  scale_fill_viridis_c(name="Escolas com EMI")
+
+ggsave(mapa, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/brazil_schools.png",
+       device = "png",
+       width=12,height=6, units = "in")
+```
+
+```{r}
+mapa
+```
+
+
+```{r}
+modelsummary::datasummary_skim(dados_ice_v3 %>% 
+                            select(c(enem_nota_objetivab, enem_nota_redacao, 
+                                     enem_nota_matematica, enem_nota_linguagens, 
+                                     enem_nota_humanas, enem_nota_ciencias)))
+
+modelsummary::datasummary_balance(~tratado, dados_ice_v3 %>% 
+                            select(c(enem_nota_objetivab, enem_nota_redacao, 
+                                     enem_nota_matematica, enem_nota_linguagens, 
+                                     enem_nota_humanas, enem_nota_ciencias, tratado)))
+
+
+modelsummary::datasummary_skim(painel_indicadores_simplificado %>% 
+                            select(c(aba_em, rep_em, dist_em, apr_em,)))
+
+modelsummary::datasummary_balance(~tratado, painel_indicadores_simplificado %>% 
+                            select(c(aba_em, rep_em, dist_em, apr_em, tratado)))
+```
+
+# Inference
+
+## DID unconditional
+
+```{r, warning=FALSE}
+did_teste_redacao <- did::att_gt(
+  yname = "enem_nota_redacao",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice", 
+  data = dados_ice_v3
+)
+
+did_teste_matematica <- did::att_gt(
+  yname = "enem_nota_matematica",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3
+)
+
+did_teste_linguagem <- did::att_gt(
+  yname = "enem_nota_linguagens",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3
+)
+
+did_teste_ciencias <- did::att_gt(
+  yname = "enem_nota_ciencias",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3
+)
+
+did_teste_humanas <- did::att_gt(
+  yname = "enem_nota_humanas",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3
+)
+
+did_teste_objetiva <- did::att_gt(
+  yname = "enem_nota_objetivab",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3
+)
+```
+
+```{r, warning=FALSE}
+did_teste_abandono <- did::att_gt(
+  yname = "aba_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado
+)
+
+did_teste_reprovacao <- did::att_gt(
+  yname = "rep_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado
+)
+
+did_teste_aprovacao <- did::att_gt(
+  yname = "apr_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado
+)
+
+did_teste_distorcao <- did::att_gt(
+  yname = "dist_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado
+)
+```
+
+### Dynamic results
+
+```{r}
+aggte(did_teste_linguagem, type = "dynamic", na.rm = T)
+aggte(did_teste_ciencias, type = "dynamic", na.rm = T)
+aggte(did_teste_humanas, type = "dynamic", na.rm = T)
+aggte(did_teste_objetiva, type = "dynamic", na.rm = T)
+aggte(did_teste_abandono, type = "dynamic", na.rm = T)
+aggte(did_teste_reprovacao, type = "dynamic", na.rm = T)
+aggte(did_teste_aprovacao, type = "dynamic", na.rm = T)
+```
+
+### Results plots
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+plot_did_linguagens <- 
+  ggdid(aggte(did_teste_linguagem, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_linguagens, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_linguagem.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_ciencias <- 
+ggdid(aggte(did_teste_ciencias, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_ciencias, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_ciencias.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_humanas <- 
+ggdid(aggte(did_teste_humanas, type = "dynamic", na.rm = T),      
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_humanas, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_humanas.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_objetivas <- 
+ggdid(aggte(did_teste_objetiva, type = "dynamic", na.rm = T),      
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_objetivas, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_objetiva.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+```
+
+```{r}
+plot_did_linguagens
+plot_did_ciencias
+plot_did_humanas
+plot_did_objetivas
+```
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+plot_did_reprovacao <- 
+ggdid(aggte(did_teste_reprovacao, type = "dynamic", na.rm = T), 
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_reprovacao, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_reprovacao.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_aprovacao <- 
+ggdid(aggte(did_teste_aprovacao, type = "dynamic", na.rm = T),
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+  tema_did
+
+ggsave(plot_did_aprovacao, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_aprovacao.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_abandono <- 
+ggdid(aggte(did_teste_abandono, type = "dynamic", na.rm = T), 
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+  filter(year >= -8) %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_abandono, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_abandono.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+```
+
+```{r}
+plot_did_reprovacao
+plot_did_aprovacao
+plot_did_abandono
+```
+
+## DID conditional
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+did_redacao_cond <- did::att_gt(
+  yname = "enem_nota_redacao",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  xformla = ~rural+dependencia_administrativa,
+  data = dados_ice_v3
+)
+
+did_matematica_cond <- did::att_gt(
+  yname = "enem_nota_matematica",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  xformla = ~rural+dependencia_administrativa,
+  data = dados_ice_v3
+)
+```
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+did_distorcao_cond <- did::att_gt(
+  yname = "dist_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  xformla = ~rural+dependencia_administrativa,
+  data = painel_indicadores_simplificado
+)
+```
+
+### Dynamic results
+
+```{r}
+aggte(did_redacao_cond, type = "dynamic", na.rm = T)
+aggte(did_matematica_cond, type = "dynamic", na.rm = T)
+aggte(did_distorcao_cond, type = "dynamic", na.rm = T)
+```
+
+### Results charts
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+plot_did_redacao_cond <-
+ggdid(aggte(did_redacao_cond, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_redacao_cond, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_redacao.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_matematica_cond <-
+ggdid(aggte(did_matematica_cond, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_matematica_cond, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_matematica.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_distorcao_cond <-
+ggdid(aggte(did_distorcao_cond, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_distorcao_cond, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_distorcao.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+```
+
+```{r}
+plot_did_redacao_cond
+plot_did_matematica_cond
+plot_did_distorcao_cond
+```
+
+## Creating normalized effects
+
+```{r}
+dados_ice_v3_norm <- dados_ice_v3 %>% 
+  mutate_at(c('enem_nota_objetiva','enem_nota_redacao', 'enem_nota_matematica', 'enem_nota_linguagens',
+              'enem_nota_humanas', 'enem_nota_humanas', 'enem_nota_ciencias', 'enem_nota_objetivab'), 
+            ~(scale(.) %>% as.vector))
+
+painel_indicadores_simplificado_norm <- painel_indicadores_simplificado %>% 
+  mutate_at(c('aba_em', 'dist_em', 'apr_em', 'rep_em'),  ~(scale(.) %>% as.vector))
+```
+
+```{r, warning=FALSE}
+did_redacao_norm <- did::att_gt(
+  yname = "enem_nota_redacao",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice", 
+  data = dados_ice_v3_norm
+)
+
+did_matematica_norm <- did::att_gt(
+  yname = "enem_nota_matematica",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_linguagem_norm <- did::att_gt(
+  yname = "enem_nota_linguagens",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_ciencias_norm <- did::att_gt(
+  yname = "enem_nota_ciencias",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_humanas_norm <- did::att_gt(
+  yname = "enem_nota_humanas",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+
+did_objetiva_norm <- did::att_gt(
+  yname = "enem_nota_objetivab",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = dados_ice_v3_norm
+)
+```
+
+```{r, warning=FALSE}
+did_abandono_norm <- did::att_gt(
+  yname = "aba_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+)
+
+did_reprovacao_norm <- did::att_gt(
+  yname = "rep_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+)
+
+did_aprovacao_norm <- did::att_gt(
+  yname = "apr_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+)
+
+did_distorcao_norm <- did::att_gt(
+  yname = "dist_em",
+  tname = "ano",
+  idname = "codigo_escola",
+  gname = "ano_ice",
+  data = painel_indicadores_simplificado_norm
+)
+```
+
+
+### Dynamic results
+
+```{r}
+aggte(did_redacao_norm, type = "dynamic", na.rm = T)
+aggte(did_matematica_norm, type = "dynamic", na.rm = T)
+aggte(did_linguagem_norm, type = "dynamic", na.rm = T)
+aggte(did_ciencias_norm, type = "dynamic", na.rm = T)
+aggte(did_humanas_norm, type = "dynamic", na.rm = T)
+aggte(did_objetiva_norm, type = "dynamic", na.rm = T)
+```
+```{r}
+aggte(did_abandono_norm, type = "dynamic", na.rm = T)
+aggte(did_reprovacao_norm, type = "dynamic", na.rm = T)
+aggte(did_aprovacao_norm, type = "dynamic", na.rm = T)
+aggte(did_distorcao_norm, type = "dynamic", na.rm = T)
+```
+
+
+### Results charts
+
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+plot_did_redacao_norm <-
+ggdid(aggte(did_redacao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_redacao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_redacao_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_linguagem_norm <-
+ggdid(aggte(did_linguagem_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_linguagem_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_linguagem_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_matematica_norm <-
+ggdid(aggte(did_matematica_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_matematica_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_matematica_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_humanas_norm <-
+ggdid(aggte(did_humanas_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_humanas_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_humanas_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_ciencias_norm <-
+ggdid(aggte(did_ciencias_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_ciencias_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_ciencias_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_objetiva_norm <-
+ggdid(aggte(did_objetiva_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_objetiva_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_objetiva_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+```
+
+```{r}
+plot_did_redacao_norm
+plot_did_linguagem_norm
+plot_did_matematica_norm
+plot_did_humanas_norm
+plot_did_ciencias_norm
+plot_did_objetiva_norm
+```
+```{r dev = "png", out.width="100%", out.height="100%", warning=FALSE}
+plot_did_aprovacao_norm <-
+ggdid(aggte(did_aprovacao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_aprovacao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_aprovacao_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_reprovacao_norm <-
+ggdid(aggte(did_reprovacao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_reprovacao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_reprovacao_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_distorcao_norm <-
+ggdid(aggte(did_distorcao_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_distorcao_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_distorcao_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+
+plot_did_abandono_norm <-
+ggdid(aggte(did_abandono_norm, type = "dynamic", na.rm = T),       
+      legend = F, ref_line = 0, theming = F)[["data"]] %>% 
+    mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+    ggplot(aes(year, att)) +
+    geom_point(aes(year, att)) +
+    geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+    labs(title = '',
+         x = 'Tempo de exposição ao programa',
+         y ='ATT') +
+    geom_vline(xintercept = '0', linetype = 'dotted') +
+    geom_hline(yintercept = 0, linetype = 'dotted') +
+    tema_did
+
+ggsave(plot_did_abandono_norm, 
+       filename = "G:/Meu Drive/Insper/TCC/Plots/did_agg_abandono_norm.png",
+       device = "png",
+       width=7.5,height=3.5, units = "in")
+```
+
+```{r}
+plot_did_aprovacao_norm
+plot_did_reprovacao_norm
+plot_did_distorcao_norm
+plot_did_abandono_norm
+```
+
+
+## Testing for heterogeneous effects
+
+```{r}
+teste <- did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3,
+    xformla = ~rural)
+
+ggdid(aggte(teste, type = "dynamic"), ncol = 2)
+
+```
+
+
+```{r}
+
+# Efeitos para redação condicionada à zona urbana
+
+aggte(
+  did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3 %>% 
+      filter(rural == 1)),
+  type = "dynamic", 
+  na.rm = T)
+
+aggte(
+  did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3 %>% 
+      filter(rural == 0)),
+  type = "dynamic", 
+  na.rm = T)
+```
+```{r}
+# Efeitos para redação condicionada à dependência administrativa
+
+ggdid(aggte(
+  did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3 %>% 
+      filter(dependencia_administrativa == 1)),
+  type = "dynamic", 
+  na.rm = T))[["data"]] %>% 
+  mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+  ggplot(aes(year, att)) +
+  geom_point(aes(year, att)) +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+  labs(title = '',
+       x = 'Tempo de exposição ao programa',
+       y ='ATT') +
+  geom_vline(xintercept = '0', linetype = 'dotted') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
+  tema_did
+
+ggdid(aggte(
+  did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3 %>% 
+      filter(dependencia_administrativa == 2)),
+  type = "dynamic", 
+  na.rm = T))[["data"]] %>% 
+  mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+  ggplot(aes(year, att)) +
+  geom_point(aes(year, att)) +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+  labs(title = '',
+       x = 'Tempo de exposição ao programa',
+       y ='ATT') +
+  geom_vline(xintercept = '0', linetype = 'dotted') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
+  tema_did
+
+ggdid(aggte(
+  did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3 %>% 
+      filter(dependencia_administrativa == 3)),
+  type = "dynamic", 
+  na.rm = T))[["data"]] %>% 
+  mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+  ggplot(aes(year, att)) +
+  geom_point(aes(year, att)) +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+  labs(title = '',
+       x = 'Tempo de exposição ao programa',
+       y ='ATT') +
+  geom_vline(xintercept = '0', linetype = 'dotted') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
+  tema_did
+
+ggdid(aggte(
+  did::att_gt(
+    yname = "enem_nota_redacao",
+    tname = "ano",
+    idname = "codigo_escola",
+    gname = "ano_ice",
+    data = dados_ice_v3 %>% 
+      filter(dependencia_administrativa == 4)),
+  type = "dynamic", 
+  na.rm = T))[["data"]] %>% 
+  mutate(ymin = att-c*att.se, ymax=att+c*att.se, year=as.factor(year)) %>% 
+  ggplot(aes(year, att)) +
+  geom_point(aes(year, att)) +
+  geom_errorbar(aes(ymin = ymin, ymax = ymax), size = 0.1) +
+  labs(title = '',
+       x = 'Tempo de exposição ao programa',
+       y ='ATT') +
+  geom_vline(xintercept = '0', linetype = 'dotted') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
+  tema_did
+```
+

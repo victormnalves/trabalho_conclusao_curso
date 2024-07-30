@@ -1,0 +1,625 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{Almeida_2016}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=db88b2575179db62055bcd4f0cb210ab}{%
+           family={Almeida},
+           familyi={A\bibinitperiod},
+           given={Rita},
+           giveni={R\bibinitperiod}}}%
+        {{hash=9ea39c607764cf8a3b1b5f3be4c18fde}{%
+           family={Bresolin},
+           familyi={B\bibinitperiod},
+           given={Antonio},
+           giveni={A\bibinitperiod}}}%
+        {{hash=dd8da314ed9e861cdf8b8e1d1ef56f62}{%
+           family={Borges},
+           familyi={B\bibinitperiod},
+           given={Bruna\bibnamedelimb Pugialli\bibnamedelimb Da\bibnamedelima Silva},
+           giveni={B\bibinitperiod\bibinitdelim P\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=94c56b8ffe0cc8044a5269b48052e598}{%
+           family={Mendes},
+           familyi={M\bibinitperiod},
+           given={Karen},
+           giveni={K\bibinitperiod}}}%
+        {{hash=eb770af38fcc2d6939b4fa505ca3f7ad}{%
+           family={Menezes-Filho},
+           familyi={M\bibinithyphendelim F\bibinitperiod},
+           given={Naércio\bibnamedelima Aquino},
+           giveni={N\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{6fb36fcdd0657093d2797014d37fe298}
+      \strng{fullhash}{84a0e8ffb29bcb7ce41d3cc2e42a1746}
+      \strng{fullhashraw}{84a0e8ffb29bcb7ce41d3cc2e42a1746}
+      \strng{bibnamehash}{84a0e8ffb29bcb7ce41d3cc2e42a1746}
+      \strng{authorbibnamehash}{84a0e8ffb29bcb7ce41d3cc2e42a1746}
+      \strng{authornamehash}{6fb36fcdd0657093d2797014d37fe298}
+      \strng{authorfullhash}{84a0e8ffb29bcb7ce41d3cc2e42a1746}
+      \strng{authorfullhashraw}{84a0e8ffb29bcb7ce41d3cc2e42a1746}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{World Bank Policy Research Working Paper}
+      \field{title}{Assessing the impacts of Mais Educacao on educational outcomes : evidence between 2007 and 2011}
+      \field{year}{2016}
+    \endentry
+    \entry{Aquino_2011}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=b2adc554faa9a6ba3ccc603b18d2a6b9}{%
+           family={Aquino},
+           familyi={A\bibinitperiod},
+           given={Juliana\bibnamedelima Maria},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+      }
+      \strng{namehash}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{fullhash}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{fullhashraw}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{bibnamehash}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{authorbibnamehash}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{authornamehash}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{authorfullhash}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \strng{authorfullhashraw}{b2adc554faa9a6ba3ccc603b18d2a6b9}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Universidade de São Paulo}
+      \field{title}{Uma ampliação da jornada escolar melhora o desempenho acadêmico dos estudantes? Uma avaliação do programa Escola de Tempo Integral da rede pública do estado de São Paulo}
+      \field{year}{2011}
+    \endentry
+    \entry{Barros_2022}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=3d7b29e7aab00438c1f659e697fc1c12}{%
+           family={Barros},
+           familyi={B\bibinitperiod},
+           given={Ricardo\bibnamedelima Paes},
+           giveni={R\bibinitperiod\bibinitdelim P\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=59095d9ca121e416b129e16afdb2b29a}{%
+           family={Machado},
+           familyi={M\bibinitperiod},
+           given={Laura\bibnamedelima Muller},
+           giveni={L\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=98ab0a431b96f7d73b5c8d1efe1aca6e}{%
+           family={Abreu},
+           familyi={A\bibinitperiod},
+           given={Laura\bibnamedelimb Almeida\bibnamedelima Ramos},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod\bibinitdelim R\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+      }
+      \strng{namehash}{a4dfb01198fb12f355d9bea568a62089}
+      \strng{fullhash}{f3e06f24827a38331326d2a03a714f0b}
+      \strng{fullhashraw}{f3e06f24827a38331326d2a03a714f0b}
+      \strng{bibnamehash}{f3e06f24827a38331326d2a03a714f0b}
+      \strng{authorbibnamehash}{f3e06f24827a38331326d2a03a714f0b}
+      \strng{authornamehash}{a4dfb01198fb12f355d9bea568a62089}
+      \strng{authorfullhash}{f3e06f24827a38331326d2a03a714f0b}
+      \strng{authorfullhashraw}{f3e06f24827a38331326d2a03a714f0b}
+      \field{extraname}{1}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Insper}
+      \field{title}{Impactos econômicos de médio e longo prazo de uma educação integral}
+      \field{year}{2022}
+    \endentry
+    \entry{Barros_2019}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=3d7b29e7aab00438c1f659e697fc1c12}{%
+           family={Barros},
+           familyi={B\bibinitperiod},
+           given={Ricardo\bibnamedelima Paes},
+           giveni={R\bibinitperiod\bibinitdelim P\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=59095d9ca121e416b129e16afdb2b29a}{%
+           family={Machado},
+           familyi={M\bibinitperiod},
+           given={Laura\bibnamedelima Muller},
+           giveni={L\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=2f5a3ebbe229427dba7601532545cf68}{%
+           family={Franco},
+           familyi={F\bibinitperiod},
+           given={Samuel},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{a4dfb01198fb12f355d9bea568a62089}
+      \strng{fullhash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{fullhashraw}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{bibnamehash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{authorbibnamehash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{authornamehash}{a4dfb01198fb12f355d9bea568a62089}
+      \strng{authorfullhash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{authorfullhashraw}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \field{extraname}{2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Insper}
+      \field{title}{Avaliação de Impacto do Ensino Médio Integral em Tempo Integral (EMITI) em Santa Catarina}
+      \field{year}{2019}
+    \endentry
+    \entry{Barros_2021}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=3d7b29e7aab00438c1f659e697fc1c12}{%
+           family={Barros},
+           familyi={B\bibinitperiod},
+           given={Ricardo\bibnamedelima Paes},
+           giveni={R\bibinitperiod\bibinitdelim P\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=59095d9ca121e416b129e16afdb2b29a}{%
+           family={Machado},
+           familyi={M\bibinitperiod},
+           given={Laura\bibnamedelima Muller},
+           giveni={L\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=2f5a3ebbe229427dba7601532545cf68}{%
+           family={Franco},
+           familyi={F\bibinitperiod},
+           given={Samuel},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{a4dfb01198fb12f355d9bea568a62089}
+      \strng{fullhash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{fullhashraw}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{bibnamehash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{authorbibnamehash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{authornamehash}{a4dfb01198fb12f355d9bea568a62089}
+      \strng{authorfullhash}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \strng{authorfullhashraw}{5caf8b350d9a6e8f2d67bdfdc92574af}
+      \field{extraname}{3}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Insper}
+      \field{title}{Perdas de aprendizagem devido à pandemia}
+      \field{year}{2021}
+    \endentry
+    \entry{Bellei_2009}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=e4a69c8da840ef13e6c8cfefb443f13d}{%
+           family={Bellei},
+           familyi={B\bibinitperiod},
+           given={Cristián},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{fullhash}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{fullhashraw}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{bibnamehash}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{authorbibnamehash}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{authornamehash}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{authorfullhash}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \strng{authorfullhashraw}{e4a69c8da840ef13e6c8cfefb443f13d}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Economics of Education Review}
+      \field{title}{Does lengthening the school day increase students’ academic achievement? Results from a natural experiment in Chile}
+      \field{year}{2009}
+    \endentry
+    \entry{CB_2021}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=4a5a67b3788b4a3653a14d9ab03fba0e}{%
+           family={Callaway},
+           familyi={C\bibinitperiod},
+           given={Brantly},
+           giveni={B\bibinitperiod}}}%
+        {{hash=7767820037a369ec59519519e44c7e9a}{%
+           family={Sant’Anna},
+           familyi={S\bibinitperiod},
+           given={Pedro\bibnamedelimb H.\bibnamedelimi C.},
+           giveni={P\bibinitperiod\bibinitdelim H\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{fullhash}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{fullhashraw}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{bibnamehash}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{authorbibnamehash}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{authornamehash}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{authorfullhash}{81e94baa528cefc8bb56e5c1a70471e2}
+      \strng{authorfullhashraw}{81e94baa528cefc8bb56e5c1a70471e2}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Econometrics}
+      \field{title}{Difference-in-differences with multiple time periods}
+      \field{year}{2021}
+    \endentry
+    \entry{Dominguez_2020}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=35e28495d1de8e71f8740f32bd6d0945}{%
+           family={Domínguez},
+           familyi={D\bibinitperiod},
+           given={Patricio},
+           giveni={P\bibinitperiod}}}%
+        {{hash=b11a2b3913fabecbb8b4a6e3f1861321}{%
+           family={Ruffini},
+           familyi={R\bibinitperiod},
+           given={Krista},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{fullhash}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{fullhashraw}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{bibnamehash}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{authorbibnamehash}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{authornamehash}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{authorfullhash}{3c7af8c8f6d680bf6139779d6240355a}
+      \strng{authorfullhashraw}{3c7af8c8f6d680bf6139779d6240355a}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Inter-American Development Bank}
+      \field{title}{Long-Term Gains from Longer School Days}
+      \field{year}{2020}
+    \endentry
+    \entry{Bacon_2021}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=437b3fad5b4a40d10f45b4fc16dd7730}{%
+           family={Goodman-Bacon},
+           familyi={G\bibinithyphendelim B\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{fullhash}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{fullhashraw}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{bibnamehash}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{authorbibnamehash}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{authornamehash}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{authorfullhash}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \strng{authorfullhashraw}{437b3fad5b4a40d10f45b4fc16dd7730}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Econometrics}
+      \field{title}{Difference-in-differences with variation in treatment timing}
+      \field{year}{2021}
+    \endentry
+    \entry{Gandra_2017}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=11429162af07252277fda145c0afb7bb}{%
+           family={Grandra},
+           familyi={G\bibinitperiod},
+           given={Juliana\bibnamedelima Mara},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{11429162af07252277fda145c0afb7bb}
+      \strng{fullhash}{11429162af07252277fda145c0afb7bb}
+      \strng{fullhashraw}{11429162af07252277fda145c0afb7bb}
+      \strng{bibnamehash}{11429162af07252277fda145c0afb7bb}
+      \strng{authorbibnamehash}{11429162af07252277fda145c0afb7bb}
+      \strng{authornamehash}{11429162af07252277fda145c0afb7bb}
+      \strng{authorfullhash}{11429162af07252277fda145c0afb7bb}
+      \strng{authorfullhashraw}{11429162af07252277fda145c0afb7bb}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Universidade Federal de Viçosa}
+      \field{title}{O Impacto da Educação em Tempo Integral no Desempenho Escolar: Uma Avaliação do Programa Mais Educação}
+      \field{year}{2017}
+    \endentry
+    \entry{Kawahara_2019}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=fe295cfbd2d2fcc84b3d2168ea6edc81}{%
+           family={Kawahara},
+           familyi={K\bibinitperiod},
+           given={Leonardo\bibnamedelima Makoto},
+           giveni={L\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{fullhash}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{fullhashraw}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{bibnamehash}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{authorbibnamehash}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{authornamehash}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{authorfullhash}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \strng{authorfullhashraw}{fe295cfbd2d2fcc84b3d2168ea6edc81}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Escola de Economia de São Paulo, Fundação Getulio Vargas}
+      \field{title}{Understanding the impacts of a full-time schooling program}
+      \field{year}{2019}
+    \endentry
+    \entry{Levin_1987}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=1b2819fc3d1feb1bcc45ada474d7f448}{%
+           family={Levin},
+           familyi={L\bibinitperiod},
+           given={Henry\bibnamedelima M},
+           giveni={H\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=75d77bfbb9adc8cdcf15d8c7682e0019}{%
+           family={Tsang},
+           familyi={T\bibinitperiod},
+           given={Mun\bibnamedelima C},
+           giveni={M\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{fullhash}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{fullhashraw}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{bibnamehash}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{authorbibnamehash}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{authornamehash}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{authorfullhash}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \strng{authorfullhashraw}{bb44ccba2c7da833176e3acf2fa8ee12}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Economics of Education Review}
+      \field{title}{The Economics of Student Time}
+      \field{year}{1987}
+    \endentry
+    \entry{Filho_2012}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=eb770af38fcc2d6939b4fa505ca3f7ad}{%
+           family={Menezes-Filho},
+           familyi={M\bibinithyphendelim F\bibinitperiod},
+           given={Naércio\bibnamedelima Aquino},
+           giveni={N\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{fullhash}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{fullhashraw}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{bibnamehash}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{authorbibnamehash}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{authornamehash}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{authorfullhash}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \strng{authorfullhashraw}{eb770af38fcc2d6939b4fa505ca3f7ad}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Universidade de São Paulo}
+      \field{title}{Os determinantes do desempenho escolar do Brasil}
+      \field{year}{2012}
+    \endentry
+    \entry{Meroni_2016}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=57ab61900b5c12c174eb54904aae4a7b}{%
+           family={Meroni},
+           familyi={M\bibinitperiod},
+           given={Elena\bibnamedelima Claudia},
+           giveni={E\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=997fa1ff658182e9a26091d1b03e0f0d}{%
+           family={Abbiati},
+           familyi={A\bibinitperiod},
+           given={Giovanni},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{fullhash}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{fullhashraw}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{bibnamehash}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{authorbibnamehash}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{authornamehash}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{authorfullhash}{c46c38c52b528e4544ea7bc54731ae6f}
+      \strng{authorfullhashraw}{c46c38c52b528e4544ea7bc54731ae6f}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Education Economics}
+      \field{title}{How do students react to longer instruction time? Evidence from Italy}
+      \field{year}{2016}
+    \endentry
+    \entry{Oliveira_2008}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=a3a7aaaaa044f0c6a3526fcbf5626cd1}{%
+           family={Oliveira},
+           familyi={O\bibinitperiod},
+           given={Jaqueline\bibnamedelima Maria},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+      }
+      \strng{namehash}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{fullhash}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{fullhashraw}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{bibnamehash}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{authorbibnamehash}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{authornamehash}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{authorfullhash}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \strng{authorfullhashraw}{a3a7aaaaa044f0c6a3526fcbf5626cd1}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Banco Nacional de Desenvolvimento Econômico e Social}
+      \field{title}{Custo-efetividade de políticas de redução do tamanho da classe e ampliação da jornada escolar: uma aplicação de estimadores de matching}
+      \field{year}{2008}
+    \endentry
+    \entry{Oliveira_2018}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f4f5f4a4904185616def7b11ad22e3b5}{%
+           family={Oliveira},
+           familyi={O\bibinitperiod},
+           given={Luís\bibnamedelimb Felipe\bibnamedelima Batista},
+           giveni={L\bibinitperiod\bibinitdelim F\bibinitperiod\bibinitdelim B\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=f4523f13391a8d5015036c45e378ef71}{%
+           family={Terra},
+           familyi={T\bibinitperiod},
+           given={Rafael},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{90b213ac59040329b366a43c08ae12fa}
+      \strng{fullhash}{90b213ac59040329b366a43c08ae12fa}
+      \strng{fullhashraw}{90b213ac59040329b366a43c08ae12fa}
+      \strng{bibnamehash}{90b213ac59040329b366a43c08ae12fa}
+      \strng{authorbibnamehash}{90b213ac59040329b366a43c08ae12fa}
+      \strng{authornamehash}{90b213ac59040329b366a43c08ae12fa}
+      \strng{authorfullhash}{90b213ac59040329b366a43c08ae12fa}
+      \strng{authorfullhashraw}{90b213ac59040329b366a43c08ae12fa}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Universidade de São Paulo}
+      \field{title}{Impacto do Programa Mais Educação em indicadores educacionais}
+      \field{year}{2018}
+    \endentry
+    \entry{Pereira_2011}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=adf1d6a77a2e9321f6aba5148a515748}{%
+           family={Pereira},
+           familyi={P\bibinitperiod},
+           given={Guilherme\bibnamedelima Costa},
+           giveni={G\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{fullhash}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{fullhashraw}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{bibnamehash}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{authorbibnamehash}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{authornamehash}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{authorfullhash}{adf1d6a77a2e9321f6aba5148a515748}
+      \strng{authorfullhashraw}{adf1d6a77a2e9321f6aba5148a515748}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Uma Avaliação de Impacto do Programa Mais Educação no Ensino Fundamental}
+      \field{year}{2011}
+    \endentry
+    \entry{Rosa_2022a}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=7a033845a520daa8cf2ea7f848e992f8}{%
+           family={Rosa},
+           familyi={R\bibinitperiod},
+           given={Leonardo},
+           giveni={L\bibinitperiod}}}%
+        {{hash=f6fdc17cee8712c0ceacc1140edb5eb6}{%
+           family={Bettinger},
+           familyi={B\bibinitperiod},
+           given={Eric},
+           giveni={E\bibinitperiod}}}%
+        {{hash=7784654190ed56a154e5cda0c260c0c8}{%
+           family={Carnoy},
+           familyi={C\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+        {{hash=a3ae0e94281b587eca27ae75c9b86132}{%
+           family={Dantas},
+           familyi={D\bibinitperiod},
+           given={Pedro},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{bdb9195f6871943ff5ed4c736f3f2d5b}
+      \strng{fullhash}{331901ff2effdcd26e03f6f3fbf723e4}
+      \strng{fullhashraw}{331901ff2effdcd26e03f6f3fbf723e4}
+      \strng{bibnamehash}{331901ff2effdcd26e03f6f3fbf723e4}
+      \strng{authorbibnamehash}{331901ff2effdcd26e03f6f3fbf723e4}
+      \strng{authornamehash}{bdb9195f6871943ff5ed4c736f3f2d5b}
+      \strng{authorfullhash}{331901ff2effdcd26e03f6f3fbf723e4}
+      \strng{authorfullhashraw}{331901ff2effdcd26e03f6f3fbf723e4}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Economics of Education Review}
+      \field{title}{The effects of public high school subsidies on student test scores The case of a full-day high school in Pernambuco, Brazil}
+      \field{year}{2022}
+    \endentry
+    \entry{Xerxenevsky_2012}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=ff94bd6aa89531b94d4d796b6dba77ba}{%
+           family={Xerxenevsky},
+           familyi={X\bibinitperiod},
+           given={Lauren\bibnamedelima Lewis},
+           giveni={L\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \strng{namehash}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{fullhash}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{fullhashraw}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{bibnamehash}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{authorbibnamehash}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{authornamehash}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{authorfullhash}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \strng{authorfullhashraw}{ff94bd6aa89531b94d4d796b6dba77ba}
+      \field{sortinit}{X}
+      \field{sortinithash}{1965c258adceecf23ce3d67b05113442}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Pontifícia Universidade Católica do Rio Grande do Sul}
+      \field{title}{Programa mais educação: avaliação do impacto da educação integral no desempenho de alunos no Rio Grande do Sul}
+      \field{year}{2012}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
