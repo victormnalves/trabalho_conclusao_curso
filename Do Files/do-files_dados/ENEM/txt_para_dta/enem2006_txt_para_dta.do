@@ -1,0 +1,273 @@
+/* ENEM 2006 - TXT PARA DTA - TODAS AS VARIÁVEIS E OBSERVAÇÕES*/
+
+clear
+set more off 
+
+#d;
+infix
+/*traducao das variáveis aqui*/
+/*na pasta de cada ano deverá ter um dicioario em xlsx, se este não tiver sido fornecdo*/
+str MASC_INSCRITO 1-8
+NU_ANO 9-16
+str DT_NASCIMENTO 17-36
+TP_SEXO 37-44
+str CODMUNIC_INSC 45-56
+str DS_CIDADE 57-106
+str IN_CONCLUIU 107-114
+str IN_SUPLETIVO 115-122
+str MASC_ESC 123-130
+str CODMUNIC_ESC 131-142
+str UF_ESC 143-156
+str SIGLA 157-158
+str MUN_ESC 159-208
+str DEP 209-218
+str LOC 219-228
+str CODFUNC 229-239
+IN_PRESENCA 240-247
+VL_PERC_COMP1 248-255
+VL_PERC_COMP2 256-263
+VL_PERC_COMP3 264-271
+VL_PERC_COMP4 272-279
+VL_PERC_COMP5 280-287
+ NU_NOTA_OBJETIVA 288-295
+str IN_SITUACAO 296
+NU_NOTA_REDACAO_COMP1 297-304
+NU_NOTA_REDACAO_COMP2 305-312
+NU_NOTA_REDACAO_COMP3 313-320
+NU_NOTA_REDACAO_COMP4 321-328
+NU_NOTA_REDACAO_COMP5 329-336
+NU_NOTA_GLOBAL_REDACAO 337-344
+str IN_QSE 345
+str Q1 346
+str Q2 347
+str Q3 348
+str Q4 349
+str Q5 350
+str Q6 351
+str Q7 352
+str Q8 353
+str Q9 354
+str Q10 355
+str Q11 356
+str Q12 357
+str Q13 358
+str Q14 359
+str Q15 360
+str Q16 361
+str Q17 362
+str Q18 363
+str Q19 364
+str Q20 365
+str Q21 366
+str Q22 367
+str Q23 368
+str Q24 369
+str Q25 370
+str Q26 371
+str Q27 372
+str Q28 373
+str Q29 374
+str Q30 375
+str Q31 376
+str Q32 377
+str Q33 378
+str Q34 379
+str Q35 380
+str Q36 381
+str Q37 382
+str Q38 383
+str Q39 384
+str Q40 385
+str Q41 386
+str Q42 387
+str Q43 388
+str Q44 389
+str Q45 390
+str Q46 391
+str Q47 392
+str Q48 393
+str Q49 394
+str Q50 395
+str Q51 396
+str Q52 397
+str Q53 398
+str Q54 399
+str Q55 400
+str Q56 401
+str Q57 402
+str Q58 403
+str Q59 404
+str Q60 405
+str Q61 406
+str Q62 407
+str Q63 408
+str Q64 409
+str Q65 410
+str Q66 411
+str Q67 412
+str Q68 413
+str Q69 414
+str Q70 415
+str Q71 416
+str Q72 417
+str Q73 418
+str Q74 419
+str Q75 420
+str Q76 421
+str Q77 422
+str Q78 423
+str Q79 424
+str Q80 425
+str Q81 426
+str Q82 427
+str Q83 428
+str Q84 429
+str Q85 430
+str Q86 431
+str Q87 432
+str Q88 433
+str Q89 434
+str Q90 435
+str Q91 436
+str Q92 437
+str Q93 438
+str Q94 439
+str Q95 440
+str Q96 441
+str Q97 442
+str Q98 443
+str Q99 444
+str Q100 445
+str Q101 446
+str Q102 447
+str Q103 448
+str Q104 449
+str Q105 450
+str Q106 451
+str Q107 452
+str Q108 453
+str Q109 454
+str Q110 455
+str Q111 456
+str Q112 457
+str Q113 458
+str Q114 459
+str Q115 460
+str Q116 461
+str Q117 462
+str Q118 463
+str Q119 464
+str Q120 465
+str Q121 466
+str Q122 467
+str Q123 468
+str Q124 469
+str Q125 470
+str Q126 471
+str Q127 472
+str Q128 473
+str Q129 474
+str Q130 475
+str Q131 476
+str Q132 477
+str Q133 478
+str Q134 479
+str Q135 480
+str Q136 481
+str Q137 482
+str Q138 483
+str Q139 484
+str Q140 485
+str Q141 486
+str Q142 487
+str Q143 488
+str Q144 489
+str Q145 490
+str Q146 491
+str Q147 492
+str Q148 493
+str Q149 494
+str Q150 495
+str Q151 496
+str Q152 497
+str Q153 498
+str Q154 499
+str Q155 500
+str Q156 501
+str Q157 502
+str Q158 503
+str Q159 504
+str Q160 505
+str Q161 506
+str Q162 507
+str Q163 508
+str Q164 509
+str Q165 510
+str Q166 511
+str Q167 512
+str Q168 513
+str Q169 514
+str Q170 515
+str Q171 516
+str Q172 517
+str Q173 518
+str Q174 519
+str Q175 520
+str Q176 521
+str Q177 522
+str Q178 523
+str Q179 524
+str Q180 525
+str Q181 526
+str Q182 527
+str Q183 528
+str Q184 529
+str Q185 530
+str Q186 531
+str Q187 532
+str Q188 533
+str Q189 534
+str Q190 535
+str Q191 536
+str Q192 537
+str Q193 538
+str Q194 539
+str Q195 540
+str Q196 541
+str Q197 542
+str Q198 543
+str Q199 544
+str Q200 545
+str Q201 546
+str Q202 547
+str Q203 548
+str Q204 549
+str Q205 550
+str Q206 551
+str Q207 552
+str Q208 553
+str Q209 554
+str Q210 555
+str Q211 556
+str Q212 557
+str Q213 558
+str Q214 559
+str Q215 560
+str Q216 561
+str Q217 562
+str Q218 563
+str Q219 564
+str Q220 565
+str Q221 566
+str Q222 567
+str Q223 568
+str VT_RESP_OBJETIVA 569-631
+str TP_PROVA 632
+str VT_GABARITO_PROVA 633-695
+
+using "C:\Users\Leonardo\Dropbox\microdados\ENEM\microdados_enem2006\Dados\DADOS_ENEM_2006\DADOS_ENEM_2006.TXT"; /*coloque entre aspas o caminho do arquivo que vai ser traduzido*/
+
+compress; /*comprime a base de dados para economizar espaço*/
+save "C:\Users\Leonardo\Dropbox\microdados\para stata\ENEM\enem2006.dta", replace; /*coloque entre aspas aonde deve ser salvo o arquivo*/
+
+#d cr;

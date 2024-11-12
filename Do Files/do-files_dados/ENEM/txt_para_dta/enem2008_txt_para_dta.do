@@ -1,0 +1,279 @@
+/* ENEM 2008 - TXT PARA DTA - TODAS AS VARIÁVEIS E OBSERVAÇÕES*/
+
+clear
+set more off 
+
+#d;
+infix
+/*traducao das variáveis aqui*/
+/*na pasta de cada ano deverá ter um dicioario em xlsx, se este não tiver sido fornecdo*/
+str NU_INSCRICAO 1-16
+NU_ANO 17-24
+str DT_NASCIMENTO 25-44
+str TP_SEXO 45
+COD_MUNIC_INSC 46-58
+str NO_MUNICIPIO_INSC 59-208
+CO_UF_INSC 209-216
+ST_CONCLUSAO 217-224
+str IN_TP_ENSINO 225
+PK_COD_ENTIDADE 226-234
+COD_MUNICIPIO_ESC 235-249
+str NO_MUNICIPIO_ESC 250-399
+str UF_ESC 400-401
+str ID_DEPENDENCIA_ADM 402
+str ID_LOCALIZACAO 403
+str SIT_FUNC 404-418
+ID_CIDADE_PROVA 419-437
+str NO_MUNICIPIO_PROVA 438-487
+str UF_CIDADE_PROVA 488-489
+IN_PRESENCA 490-497
+NU_PERCENT_COMP1 498-506
+NU_PERCENT_COMP2 507-515
+NU_PERCENT_COMP3 516-524
+NU_PERCENT_COMP4 525-533
+NU_PERCENT_COMP5 534-542
+NU_NT_OBJETIVA 543-551
+str IN_STATUS_REDACAO 552
+NU_NOTA_COMP1 553-561
+NU_NOTA_COMP2 562-570
+NU_NOTA_COMP3 571-579
+NU_NOTA_COMP4 580-588
+NU_NOTA_COMP5 589-597
+NU_NOTA_REDACAO 598-606
+IN_QSE 607-614
+str Q1 615
+str Q2 616
+str Q3 617
+str Q4 618
+str Q5 619
+str Q6 620
+str Q7 621
+str Q8 622
+str Q9 623
+str Q10 624
+str Q11 625
+str Q12 626
+str Q13 627
+str Q14 628
+str Q15 629
+str Q16 630
+str Q17 631
+str Q18 632
+str Q19 633
+str Q20 634
+str Q21 635
+str Q22 636
+str Q23 637
+str Q24 638
+str Q25 639
+str Q26 640
+str Q27 641
+str Q28 642
+str Q29 643
+str Q30 644
+str Q31 645
+str Q32 646
+str Q33 647
+str Q34 648
+str Q35 649
+str Q36 650
+str Q37 651
+str Q38 652
+str Q39 653
+str Q40 654
+str Q41 655
+str Q42 656
+str Q43 657
+str Q44 658
+str Q45 659
+str Q46 660
+str Q47 661
+str Q48 662
+str Q49 663
+str Q50 664
+str Q51 665
+str Q52 666
+str Q53 667
+str Q54 668
+str Q55 669
+str Q56 670
+str Q57 671
+str Q58 672
+str Q59 673
+str Q60 674
+str Q61 675
+str Q62 676
+str Q63 677
+str Q64 678
+str Q65 679
+str Q66 680
+str Q67 681
+str Q68 682
+str Q69 683
+str Q70 684
+str Q71 685
+str Q72 686
+str Q73 687
+str Q74 688
+str Q75 689
+str Q76 690
+str Q77 691
+str Q78 692
+str Q79 693
+str Q80 694
+str Q81 695
+str Q82 696
+str Q83 697
+str Q84 698
+str Q85 699
+str Q86 700
+str Q87 701
+str Q88 702
+str Q89 703
+str Q90 704
+str Q91 705
+str Q92 706
+str Q93 707
+str Q94 708
+str Q95 709
+str Q96 710
+str Q97 711
+str Q98 712
+str Q99 713
+str Q100 714
+str Q101 715
+str Q102 716
+str Q103 717
+str Q104 718
+str Q105 719
+str Q106 720
+str Q107 721
+str Q108 722
+str Q109 723
+str Q110 724
+str Q111 725
+str Q112 726
+str Q113 727
+str Q114 728
+str Q115 729
+str Q116 730
+str Q117 731
+str Q118 732
+str Q119 733
+str Q120 734
+str Q121 735
+str Q122 736
+str Q123 737
+str Q124 738
+str Q125 739
+str Q126 740
+str Q127 741
+str Q128 742
+str Q129 743
+str Q130 744
+str Q131 745
+str Q132 746
+str Q133 747
+str Q134 748
+str Q135 749
+str Q136 750
+str Q137 751
+str Q138 752
+str Q139 753
+str Q140 754
+str Q141 755
+str Q142 756
+str Q143 757
+str Q144 758
+str Q145 759
+str Q146 760
+str Q147 761
+str Q148 762
+str Q149 763
+str Q150 764
+str Q151 765
+str Q152 766
+str Q153 767
+str Q154 768
+str Q155 769
+str Q156 770
+str Q157 771
+str Q158 772
+str Q159 773
+str Q160 774
+str Q161 775
+str Q162 776
+str Q163 777
+str Q164 778
+str Q165 779
+str Q166 780
+str Q167 781
+str Q168 782
+str Q169 783
+str Q170 784
+str Q171 785
+str Q172 786
+str Q173 787
+str Q174 788
+str Q175 789
+str Q176 790
+str Q177 791
+str Q178 792
+str Q179 793
+str Q180 794
+str Q181 795
+str Q182 796
+str Q183 797
+str Q184 798
+str Q185 799
+str Q186 800
+str Q187 801
+str Q188 802
+str Q189 803
+str Q190 804
+str Q191 805
+str Q192 806
+str Q193 807
+str Q194 808
+str Q195 809
+str Q196 810
+str Q197 811
+str Q198 812
+str Q199 813
+str Q200 814
+str Q201 815
+str Q202 816
+str Q203 817
+str Q204 818
+str Q205 819
+str Q206 820
+str Q207 821
+str Q208 822
+str Q209 823
+str Q210 824
+str Q211 825
+str Q212 826
+str Q213 827
+str Q214 828
+str Q215 829
+str Q216 830
+str Q217 831
+str Q218 832
+str Q219 833
+str Q220 834
+str Q221 835
+str Q222 836
+str Q223 837
+str TX_RESPOSTAS 838-1037
+ID_PROVA 1038-1045
+str DS_TP_PROVA 1046-1095
+str DS_GABARITO 1096-1195
+
+
+
+using "C:\Users\Leonardo\Dropbox\microdados\ENEM\microdados_enem2008\MICRODADOS DO ENEM 2008\DADOS\DADOS_ENEM_2008.TXT"; /*coloque entre aspas o caminho do arquivo que vai ser traduzido*/
+
+compress; /*comprime a base de dados para economizar espaço*/
+save "C:\Users\Leonardo\Dropbox\microdados\para stata\ENEM\enem2008.dta", replace; /*coloque entre aspas aonde deve ser salvo o arquivo*/
+
+#d cr;
